@@ -1,0 +1,177 @@
+name: Download and Patch Modules
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 23 * * *'
+
+  workflow_call:
+    inputs:
+      enable_retelegram_module:
+        description: 'Enable Re-Telegram module'
+        default: true
+        required: false
+        type: boolean
+      enable_telespeed_module:
+        description: 'Enable Telespeed module'
+        default: true
+        required: false
+        type: boolean
+      enable_telegramweb_client:
+        description: 'Patch TelegramWeb client'
+        default: true
+        required: false
+        type: boolean
+      enable_telegrambeta_client:
+        description: 'Patch TelegramBeta client'
+        default: true
+        required: false
+        type: boolean
+  workflow_dispatch:
+    inputs:
+      enable_retelegram_module:
+        description: 'Enable Re-Telegram module'
+        default: true
+        required: false
+        type: boolean
+      enable_telespeed_module:
+        description: 'Enable Telespeed module'
+        default: true
+        required: false
+        type: boolean
+      enable_telegramweb_client:
+        description: 'Patch TelegramWeb client'
+        default: true
+        required: false
+        type: boolean
+      enable_telegrambeta_client:
+        description: 'Patch TelegramBeta client'
+        default: true
+        required: false
+        type: boolean
+
+jobs:
+  build-clients:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+        with:
+          ref: main
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '18'
+
+      - name: Create module list
+        id: create_module_list
+        run: |
+          modules=""
+          if [[ "${{ github.event.inputs.enable_retelegram_module }}" == "true" ]]; then
+            modules="$modules -m Re-Telegram-*-Release.apk"
+          fi
+          if [[ "${{ github.event.inputs.enable_telespeed_module }}" == "true" ]]; then
+            modules="$modules -m ./Backup/TeleSpeedMod.apk"
+            #modules="$modules -m Telespeed.apk"
+          fi
+          echo "$modules" > module_list.txt 
+        shell: bash
+
+      - name: Download Re-Telegram Module
+        if: ${{ github.event.inputs.enable_retelegram_module == 'true' }}
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "Re-Telegram-*-Release.apk"
+          repository: Xposed-Modules-Repo/nep.timeline.re_telegram
+          latest: true
+
+      - name: Download and rename Telespeed Module
+        if: ${{ github.event.inputs.enable_telespeed_module == 'true' }}
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "app-release.apk"
+          repository: Xposed-Modules-Repo/io.github.tehcneko.telespeed
+          latest: true
+
+      - name: Rename Telespeed Module
+        if: ${{ github.event.inputs.enable_telespeed_module == 'true' }}      
+        run: mv app-release.apk Telespeed.apk
+        shell: bash
+
+      - name: Download LSPatch Jar from Github
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "*.jar"
+          repository: LSPosed/LSPatch
+          latest: true
+
+      - name: Download and Patch TelegramWeb Client
+        if: ${{ github.event.inputs.enable_telegramweb_client == 'true' }}
+        run: |
+          #Download APK
+          curl -L -o telegramWeb.apk https://telegram.org/dl/android/apk
+
+          #Patch Telegram Client With Modules
+          java -jar *.jar -l 2 telegramWeb.apk $(cat module_list.txt)
+        shell: bash
+
+      - name: Download and Patch TelegramBeta Client
+        if: ${{ github.event.inputs.enable_telegrambeta_client == 'true' }}
+        run: |
+          #Download APK
+          curl -L -o telegramBeta.apk https://telegram.org/dl/android/apk-public-beta
+
+          #Patch Telegram Client With Modules
+          java -jar *.jar -l 2 telegramBeta.apk $(cat module_list.txt)
+        shell: bash
+
+      - name: Delete Previous Releases
+        run: |
+          release_id=$(curl -s https://api.github.com/repos/dsys1100/auto-lspatch/releases | jq -r '.[] | select(.tag_name=="LSpatched") | .id')
+          if [ -n "$release_id" ]; then
+            echo "Deleting previous release $release_id..."
+            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/dsys1100/auto-lspatch/releases/$release_id"
+          fi
+        shell: bash
+
+      - name: Create Release
+        id: create_release
+        run: |
+          echo "Used modules:" > release_body.txt
+
+          if [ "${{ github.event.inputs.enable_retelegram_module }}" == "true" ]; then
+              echo "- Re-Telegram" >> release_body.txt
+          fi
+
+          if [ "${{ github.event.inputs.enable_telespeed_module }}" == "true" ]; then
+              echo "- Telespeed" >> release_body.txt
+          fi
+
+          echo "" >> release_body.txt
+
+          echo "Clients:" >> release_body.txt
+
+          if [ "${{ github.event.inputs.enable_telegramweb_client }}" == "true" ]; then
+              echo "- Telegram Web" >> release_body.txt
+          fi
+
+          if [ "${{ github.event.inputs.enable_telegrambeta_client }}" == "true" ]; then
+              echo "- Telegram Beta" >> release_body.txt
+          fi
+
+          echo "" >> release_body.txt
+      
+      - name: Upload Release
+        id: upload_release
+        uses: softprops/action-gh-release@master
+        with:
+          files: |
+            *-lspatched.apk
+          tag_name: LSpatched
+          draft: false
+          body_path: release_body.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
