@@ -1,4 +1,4 @@
-name: Delete old workflow runs and clear commits
+name: 2. Delete old stuff
 on:
   schedule:
     - cron: "0 1 * * 0"

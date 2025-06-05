@@ -1,4 +1,4 @@
-name: Download and Patch Modules
+name: 1. Download and Patch TG
 
 on:
   schedule:
