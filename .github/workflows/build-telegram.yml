@@ -1,7 +1,6 @@
-name: Check for New Releases
+name: Download and Patch Modules
 
 on:
-  workflow_dispatch: {}
   schedule:
     - cron: '0 23 * * *'
 
