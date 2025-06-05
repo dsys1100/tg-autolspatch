@@ -5,32 +5,6 @@ on:
   schedule:
     - cron: '0 23 * * *'
 
-permissions:
-  contents: write
-
-  workflow_call:
-    inputs:
-      enable_retelegram_module:
-        description: 'Enable Re-Telegram module'
-        default: true
-        required: false
-        type: boolean
-      enable_telespeed_module:
-        description: 'Enable Telespeed module'
-        default: true
-        required: false
-        type: boolean
-      enable_telegramweb_client:
-        description: 'Patch TelegramWeb client'
-        default: true
-        required: false
-        type: boolean
-      enable_telegrambeta_client:
-        description: 'Patch TelegramBeta client'
-        default: true
-        required: false
-        type: boolean
-  workflow_dispatch:
     inputs:
       enable_retelegram_module:
         description: 'Enable Re-Telegram module'
