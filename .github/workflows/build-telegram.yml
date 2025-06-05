@@ -1,10 +1,6 @@
 name: Download and Patch Modules
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 23 * * *'
-
   workflow_call:
     inputs:
       enable_retelegram_module:
@@ -130,10 +126,10 @@ jobs:
 
       - name: Delete Previous Releases
         run: |
-          release_id=$(curl -s https://api.github.com/repos/dsys1100/auto-lspatch/releases | jq -r '.[] | select(.tag_name=="LSpatched") | .id')
+          release_id=$(curl -s https://api.github.com/repos/dsys1100/tg-autolspatch/releases | jq -r '.[] | select(.tag_name=="LSpatched") | .id')
           if [ -n "$release_id" ]; then
             echo "Deleting previous release $release_id..."
-            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/dsys1100/auto-lspatch/releases/$release_id"
+            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/dsys1100/tg-autolspatch/releases/$release_id"
           fi
         shell: bash
 
