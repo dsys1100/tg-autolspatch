@@ -1,0 +1,122 @@
+name: 1. Download and Patch TG
+
+on:
+  workflow_dispatch: {} # Enables the manual start
+  schedule:
+    - cron: '0 23 * * *' # Start every day at 23:00 UTC
+
+permissions:
+  contents: write # Give permission to put the release into the repo
+
+jobs:
+  build-clients:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '18'
+
+      - name: Create module list
+        id: create_module_list
+        run: |
+          modules="-m Re-Telegram-*-Release.apk -m ./Backup/TeleSpeedMod.apk"
+          echo "$modules" > module_list.txt
+        shell: bash
+
+      - name: Download Re-Telegram Module
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "Re-Telegram-*-Release.apk"
+          repository: Xposed-Modules-Repo/nep.timeline.re_telegram
+          latest: true
+
+      - name: Download and rename Telespeed Module
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "app-release.apk"
+          repository: Xposed-Modules-Repo/io.github.tehcneko.telespeed
+          latest: true
+
+      - name: Rename Telespeed Module
+        run: mv app-release.apk Telespeed.apk
+        shell: bash
+
+      - name: Download LSPatch Jar from Github
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "*.jar"
+          repository: LSPosed/LSPatch
+          latest: true
+
+      - name: Download and Patch TelegramWeb Client
+        run: |
+          curl -L -o telegramWeb.apk https://telegram.org/dl/android/apk
+          java -jar *.jar -l 2 telegramWeb.apk $(cat module_list.txt)
+        shell: bash
+
+      - name: Download and Patch TelegramBeta Client
+        run: |
+          curl -L -o telegramBeta.apk https://telegram.org/dl/android/apk-public-beta
+          java -jar *.jar -l 2 telegramBeta.apk $(cat module_list.txt)
+        shell: bash
+
+      - name: Delete Previous Releases
+        run: |
+          release_id=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases | jq -r '.[] | select(.tag_name=="LSpatched") | .id')
+          if [ -n "$release_id" ]; then
+            echo "Deleting previous release $release_id..."
+            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/$release_id"
+          fi
+        shell: bash
+
+      - name: Rename Telegram Patched APKs
+        run: |
+          mv telegramWeb-*.apk telegramWeb-lsp.apk
+          mv telegramBeta-*.apk telegramBeta-lsp.apk
+        shell: bash
+
+      - name: Create Release Info
+        run: |
+          curl -sSL https://dl.google.com/android/repository/build-tools_r33.0.2-linux.zip -o build-tools.zip
+          unzip -q build-tools.zip -d build-tools
+          AAPT=build-tools/android-13/aapt
+
+          chmod +x "$AAPT"
+
+          TGWEB_INFO=$("$AAPT" dump badging telegramWeb-lsp.apk | grep versionName)
+          TGWeb_VersionName=$(echo "$TGWEB_INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
+          TGWeb_VersionCode=$(echo "$TGWEB_INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
+          TGWeb_Version="$TGWeb_VersionName $TGWeb_VersionCode"
+
+          TGBETA_INFO=$("$AAPT" dump badging telegramBeta-lsp.apk | grep versionName)
+          TGBeta_VersionName=$(echo "$TGBETA_INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
+          TGBeta_VersionCode=$(echo "$TGBETA_INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
+          TGBeta_Version="$TGBeta_VersionName $TGBeta_VersionCode"
+
+          echo "Used modules:" > release_body.txt
+          echo "- Re-Telegram" >> release_body.txt
+          echo "- Telespeed" >> release_body.txt
+          echo "" >> release_body.txt
+          echo "Clients:" >> release_body.txt
+          echo "- Telegram Web - $TGWeb_Version" >> release_body.txt
+          echo "- Telegram Beta - $TGBeta_Version" >> release_body.txt
+          echo "" >> release_body.txt
+          echo "Patched at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> release_body.txt
+        shell: bash
+
+      - name: Upload Release
+        uses: softprops/action-gh-release@master
+        with:
+          files: |
+            *-lsp.apk
+          tag_name: LSpatched
+          draft: false
+          body_path: release_body.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
