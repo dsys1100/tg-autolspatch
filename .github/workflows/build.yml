@@ -1,4 +1,4 @@
-name: 1. Download and Patch TG
+name: Clean repo and Patch TG
 
 on:
   workflow_dispatch: {} # Enables the manual start
@@ -7,9 +7,43 @@ on:
 
 permissions:
   contents: write # Give permission to put the release into the repo
+  actions: write # Give permission to delete workflow runs
 
 jobs:
-  build-clients:
+  ClearReleasesTagsWorkflowlogs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Delete all releases
+        run: |
+          gh release list --limit 1000 | awk '{print $1}' | while read tag; do
+            echo "Deleting release: $tag"
+            gh release delete "$tag" -y || true
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete all tags
+        run: |
+          git fetch --tags
+          git ls-remote --tags origin | awk '{print $2}' | sed 's|refs/tags/||' | while read tag; do
+            echo "Deleting tag: $tag"
+            git push origin --delete "$tag" || true
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 0
+          keep_minimum_runs: 0
+
+  PatchTelegram:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,7 +59,7 @@ jobs:
       - name: Create module list
         id: create_module_list
         run: |
-          modules="-m Re-Telegram-*-Release.apk -m ./Backup/TeleSpeedMod.apk"
+          modules="-m Re-Telegram-*-Release.apk -m TeleSpeed.apk"
           echo "$modules" > module_list.txt
         shell: bash
 
@@ -36,7 +70,7 @@ jobs:
           repository: Xposed-Modules-Repo/nep.timeline.re_telegram
           latest: true
 
-      - name: Download and rename Telespeed Module
+      - name: Download Telespeed Module
         uses: robinraju/release-downloader@v1
         with:
           fileName: "app-release.apk"
@@ -44,7 +78,7 @@ jobs:
           latest: true
 
       - name: Rename Telespeed Module
-        run: mv app-release.apk Telespeed.apk
+        run: mv app-release.apk TeleSpeed.apk
         shell: bash
 
       - name: Download LSPatch Jar from Github
@@ -64,15 +98,6 @@ jobs:
         run: |
           curl -L -o telegramBeta.apk https://telegram.org/dl/android/apk-public-beta
           java -jar *.jar -l 2 telegramBeta.apk $(cat module_list.txt)
-        shell: bash
-
-      - name: Delete Previous Releases
-        run: |
-          release_id=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases | jq -r '.[] | select(.tag_name=="LSpatched") | .id')
-          if [ -n "$release_id" ]; then
-            echo "Deleting previous release $release_id..."
-            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/$release_id"
-          fi
         shell: bash
 
       - name: Rename Telegram Patched APKs
