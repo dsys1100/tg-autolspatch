@@ -59,7 +59,7 @@ jobs:
       - name: Create module list
         id: create_module_list
         run: |
-          modules="-m Re-Telegram-*-Release.apk -m TeleSpeed.apk"
+          modules="-m Re-Telegram-*-Release.apk -m TeleSpeed.apk -m sidestories.apk -m com.alex193a.tguseridviewer_v*_*.apk -m nai.apk"
           echo "$modules" > module_list.txt
         shell: bash
 
@@ -79,6 +79,28 @@ jobs:
 
       - name: Rename Telespeed Module
         run: mv app-release.apk TeleSpeed.apk
+        shell: bash
+
+      - name: Download SideStories Module
+        run: wget https://github.com/Xposed-Modules-Repo/ru.mike.sidestories/releases/download/4-1.3/telegram_sidestories_v1.3.apk -O sidestories.apk
+        shell: bash
+
+      - name: Download UserID Viewer Module
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "com.alex193a.tguseridviewer_v*_*.apk"
+          repository: Xposed-Modules-Repo/com.alex193a.tguseridviewer
+          latest: true
+
+      - name: Download Nai Module
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "app-release.apk"
+          repository: Xposed-Modules-Repo/com.amanoteam.nai
+          latest: true
+
+      - name: Rename Nai Module
+        run: mv app-release.apk nai.apk
         shell: bash
 
       - name: Download LSPatch Jar from Github
@@ -127,6 +149,9 @@ jobs:
           echo "Used modules:" > release_body.txt
           echo "- Re-Telegram" >> release_body.txt
           echo "- Telespeed" >> release_body.txt
+          echo "- SideStories" >> release_body.txt
+          echo "- UserID Viewer" >> release_body.txt
+          echo "- Nai" >> release_body.txt
           echo "" >> release_body.txt
           echo "Clients:" >> release_body.txt
           echo "- Telegram Web - $TGWeb_Version" >> release_body.txt
