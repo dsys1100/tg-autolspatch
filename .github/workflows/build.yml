@@ -54,35 +54,28 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'adopt'
-          java-version: '18'
+          java-version: '21'
 
       - name: Create module list
         id: create_module_list
         run: |
-          modules="-m Re-Telegram-*-Release.apk -m TeleSpeed.apk -m sidestories.apk -m com.alex193a.tguseridviewer_v*_*.apk -m nai.apk"
+          modules="-m Re-Telegram.apk -m SideStories.apk -m UserID.apk -m Nai.apk -m SpeedHook.apk"
           echo "$modules" > module_list.txt
         shell: bash
 
       - name: Download Re-Telegram Module
         uses: robinraju/release-downloader@v1
         with:
-          fileName: "Re-Telegram-*-Release.apk"
-          repository: Xposed-Modules-Repo/nep.timeline.re_telegram
-          latest: true
-
-      - name: Download Telespeed Module
-        uses: robinraju/release-downloader@v1
-        with:
           fileName: "app-release.apk"
-          repository: Xposed-Modules-Repo/io.github.tehcneko.telespeed
+          repository: hxreborn/Re-Telegram-CherryFork
           latest: true
 
-      - name: Rename Telespeed Module
-        run: mv app-release.apk TeleSpeed.apk
+      - name: Rename Re-Telegram Module
+        run: mv app-release.apk Re-Telegram.apk
         shell: bash
 
       - name: Download SideStories Module
-        run: wget https://github.com/dsys1100/tg-autolspatch/raw/refs/heads/main/telegram_sidestories_v1.3.apk -O sidestories.apk
+        run: wget https://github.com/dsys1100/tg-autolspatch/raw/refs/heads/main/telegram_sidestories_v1.3.apk -O SideStories.apk
         shell: bash
 
       - name: Download UserID Viewer Module
@@ -92,6 +85,10 @@ jobs:
           repository: Xposed-Modules-Repo/com.alex193a.tguseridviewer
           latest: true
 
+      - name: Rename UserID Viewer Module
+        run: mv com.alex193a.tguseridviewer_v*_*.apk UserID.apk
+        shell: bash
+
       - name: Download Nai Module
         uses: robinraju/release-downloader@v1
         with:
@@ -100,14 +97,32 @@ jobs:
           latest: true
 
       - name: Rename Nai Module
-        run: mv app-release.apk nai.apk
+        run: mv app-release.apk Nai.apk
+        shell: bash
+
+      - name: Download SpeedHook Module
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "Telegram.Speed.Hook-*.apk"
+          repository: araafroyall/Telegram-Speed-Hook
+          latest: true
+
+      - name: Rename SpeedHook Module
+        run: mv Telegram.Speed.Hook-*.apk SpeedHook.apk
         shell: bash
 
       - name: Download LSPatch Jar from Github
         uses: robinraju/release-downloader@v1
         with:
           fileName: "*.jar"
-          repository: LSPosed/LSPatch
+          repository: JingMatrix/LSPatch
+          latest: true
+
+      - name: Download OctoGram Client
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "OctoGram_universal.apk"
+          repository: OctoGramApp/OctoGram
           latest: true
 
       - name: Download and Patch TelegramWeb Client
@@ -122,10 +137,16 @@ jobs:
           java -jar *.jar -l 2 telegramBeta.apk $(cat module_list.txt)
         shell: bash
 
+      - name: Patch OctoGram
+        run: |
+          java -jar *.jar -l 2 OctoGram_universal.apk $(cat module_list.txt)
+        shell: bash
+
       - name: Rename Telegram Patched APKs
         run: |
           mv telegramWeb-*.apk telegramWeb-lsp.apk
           mv telegramBeta-*.apk telegramBeta-lsp.apk
+          mv OctoGram_universal-*.apk octogram-lsp.apk
         shell: bash
 
       - name: Create Release Info
@@ -139,23 +160,29 @@ jobs:
           TGWEB_INFO=$("$AAPT" dump badging telegramWeb-lsp.apk | grep versionName)
           TGWeb_VersionName=$(echo "$TGWEB_INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
           TGWeb_VersionCode=$(echo "$TGWEB_INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
-          TGWeb_Version="$TGWeb_VersionName $TGWeb_VersionCode"
+          TGWeb_Version="$TGWeb_VersionName ($TGWeb_VersionCode)"
 
           TGBETA_INFO=$("$AAPT" dump badging telegramBeta-lsp.apk | grep versionName)
           TGBeta_VersionName=$(echo "$TGBETA_INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
           TGBeta_VersionCode=$(echo "$TGBETA_INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
-          TGBeta_Version="$TGBeta_VersionName $TGBeta_VersionCode"
+          TGBeta_Version="$TGBeta_VersionName ($TGBeta_VersionCode)"
+
+          OCTO_INFO=$("$AAPT" dump badging octogram-lsp.apk | grep versionName)
+          Octo_VersionName=$(echo "$OCTO_INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
+          Octo_VersionCode=$(echo "$OCTO_INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
+          Octo_Version="$Octo_VersionName ($Octo_VersionCode)"
 
           echo "Used modules:" > release_body.txt
           echo "- Re-Telegram" >> release_body.txt
-          echo "- Telespeed" >> release_body.txt
           echo "- SideStories" >> release_body.txt
           echo "- UserID Viewer" >> release_body.txt
           echo "- Nai" >> release_body.txt
+          echo "- SpeedHook" >> release_body.txt
           echo "" >> release_body.txt
           echo "Clients:" >> release_body.txt
           echo "- Telegram Web - $TGWeb_Version" >> release_body.txt
           echo "- Telegram Beta - $TGBeta_Version" >> release_body.txt
+          echo "- OctoGram - $Octo_Version" >> release_body.txt
           echo "" >> release_body.txt
           echo "Patched at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> release_body.txt
         shell: bash

@@ -1,6 +1,6 @@
 # Telegram Autopatch
 
-Patching latest Telegram (.web) and Beta releases by LSPatch (LSPosed, not JingMatrix) on GitHub workflow.
+Patching latest Telegram .web & beta and my favorites unofficial clients by LSPatch on GitHub workflow.
 
 ## Features
 
@@ -10,8 +10,14 @@ Patching latest Telegram (.web) and Beta releases by LSPatch (LSPosed, not JingM
 
 ## Never been added modules
 
+(Not tested with new LSPatch)
 - New version of SideStories/**TelegramTweaks** - not working. Only old latest SideStories version.
 - **Loyalty** - Also just not working.
+
+## Never been added clients
+
+- **CherryGram** - Obfuscation, app crashed after patch.
+- **ExteraGram** - use [AyuGram](https://t.me/AyuGramReleases), lol.
 
 ## Acknowledgements
 
@@ -19,13 +25,15 @@ We would like to thank the following:
 
 - Original project: [Auto-LSPatch](https://github.com/MartinatorTime/auto-lspatch)
 
-- The Patcher: [LSPatch](https://github.com/LSPosed/LSPatch)
+- The Old Patcher: [LSPatch](https://github.com/LSPosed/LSPatch)
+- The New Patcher: [LSPatch](https://github.com/JingMatrix/LSPatch)
 - The Xposed modules:
-  - [Telespeed](https://github.com/Xposed-Modules-Repo/io.github.tehcneko.telespeed)
-  - [ReTelegram](https://github.com/Sakion-Team/Re-Telegram)
+  - [ReTelegram](https://github.com/hxreborn/Re-Telegram-CherryFork)
   - [SideStories](https://github.com/Xposed-Modules-Repo/ru.mike.sidestories/)
   - [UserID Viewer](https://github.com/Xposed-Modules-Repo/com.alex193a.tguseridviewer)
   - [Nai](https://github.com/Xposed-Modules-Repo/com.amanoteam.nai)
+  - [SpeedHook](https://github.com/araafroyall/Telegram-Speed-Hook)
 - The Telegram clients:
   - [Telegram](https://telegram.org/android)
   - [Telegram Beta](https://github.com/TelegramOfficial/TelegramBeta)
+  - [Octogram](https://github.com/OctoGramApp/OctoGram)
