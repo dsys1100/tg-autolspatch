@@ -36,4 +36,3 @@ We would like to thank the following:
 - The Telegram clients:
   - [Telegram](https://telegram.org/android)
   - [Telegram Beta](https://github.com/TelegramOfficial/TelegramBeta)
-  - [Octogram](https://github.com/OctoGramApp/OctoGram)
