@@ -123,13 +123,13 @@ jobs:
 
       - name: Download and Patch TelegramWeb Client
         run: |
-          curl -L -o telegramWeb.apk https://telegram.org/dl/android/apk
+          curl -fL --retry 2 --retry-delay 2 --retry-all-errors -o telegramWeb.apk https://telegram.org/dl/android/apk
           java -jar *.jar -l 2 telegramWeb.apk $(cat module_list.txt)
         shell: bash
 
       - name: Download and Patch TelegramBeta Client
         run: |
-          curl -L -o telegramBeta.apk https://telegram.org/dl/android/apk-public-beta
+          curl -fL --retry 2 --retry-delay 2 --retry-all-errors -o telegramBeta.apk https://telegram.org/dl/android/apk-public-beta
           java -jar *.jar -l 2 telegramBeta.apk $(cat module_list.txt)
         shell: bash
 
