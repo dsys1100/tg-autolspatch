@@ -33,6 +33,7 @@ We would like to thank the following:
   - [UserID Viewer](https://github.com/Xposed-Modules-Repo/com.alex193a.tguseridviewer)
   - [Nai](https://github.com/Xposed-Modules-Repo/com.amanoteam.nai)
   - [SpeedHook](https://github.com/araafroyall/Telegram-Speed-Hook)
+  - [TGnoBottomStuff - my module, ForkClient realization](https://github.com/forkgram/TelegramAndroid)
 - The Telegram clients:
   - [Telegram](https://telegram.org/android)
   - [Telegram Beta](https://github.com/TelegramOfficial/TelegramBeta)
