@@ -62,7 +62,7 @@ jobs:
       - name: Create module list
         id: create_module_list
         run: |
-          modules="-m Re-Telegram.apk -m SideStories.apk -m UserID.apk -m Nai.apk -m SpeedHook.apk -m TGnoBottomStuff.apk"
+          modules="-m Re-Telegram.apk -m SideStories.apk -m UserID.apk -m Nai.apk -m SpeedHook.apk"
           echo "$modules" > module_list.txt
         shell: bash
 
@@ -114,10 +114,6 @@ jobs:
         run: mv Telegram.Speed.Hook-*.apk SpeedHook.apk
         shell: bash
 
-      - name: Download SideStories Module
-        run: wget https://github.com/dsys1100/tg-autolspatch/raw/refs/heads/main/TGnoBottomStuff.apk -O TGnoBottomStuff.apk
-        shell: bash
-
       - name: Download LSPatch Jar from Github
         uses: robinraju/release-downloader@v1
         with:
@@ -167,7 +163,6 @@ jobs:
           echo "- UserID Viewer" >> release_body.txt
           echo "- Nai" >> release_body.txt
           echo "- SpeedHook" >> release_body.txt
-          echo "- TGnoBottomStuff" >> release_body.txt
           echo "" >> release_body.txt
           echo "Clients:" >> release_body.txt
           echo "- Telegram Web - $TGWeb_Version" >> release_body.txt
